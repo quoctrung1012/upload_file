@@ -1,0 +1,277 @@
+<ng-template #contentCreate>
+  <div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title">
+      <i class="fas fa-cloud-upload-alt me-2"></i>
+      Tải lên file
+    </h4>
+    <button type="button" class="btn-close btn btn-sm" aria-label="Close"
+            (click)="close('Cross click')" [disabled]="isUploading"></button>
+  </div>
+
+  <div class="modal-body">
+    <!-- Upload Progress -->
+    @if (isUploading) {
+      <div class="upload-progress mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="text-primary">
+            <i class="fas fa-spinner fa-spin me-1"></i>
+            Đang tải lên...
+          </span>
+          <span class="text-muted">{{overallProgress}}%</span>
+        </div>
+        <div class="progress">
+          <div class="progress-bar progress-bar-striped progress-bar-animated"
+               [style.width.%]="overallProgress"></div>
+        </div>
+      </div>
+    }
+
+    <div class="content-image">
+      <!-- Drop Zone -->
+      <div
+        class="dropzone"
+        [class.dragover]="isDragging"
+        [class.disabled]="isUploading"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)"
+        (drop)="onDrop($event)"
+        (click)="!isUploading && fileInput.click()"
+      >
+        @if (!isUploading) {
+          <div class="dropzone-content">
+            <i class="fas fa-cloud-upload-alt dropzone-icon"></i>
+            <p class="dropzone-text">Kéo thả file vào đây hoặc bấm để chọn file</p>
+            <div class="dropzone-info">
+              <p class="small text-muted mb-1">
+                <i class="fas fa-check-circle text-success me-1"></i>
+                Hỗ trợ: Images, PDF, DOC/DOCX, XLS/XLSX, PPT/PPTX, TXT, ZIP, RAR
+              </p>
+              <p class="small text-muted mb-1">
+                <i class="fas fa-info-circle text-info me-1"></i>
+                File nhỏ (&lt;10MB): Upload trực tiếp
+              </p>
+              <p class="small text-muted">
+                <i class="fas fa-rocket text-warning me-1"></i>
+                File lớn (&gt;10MB): Upload theo chunk (tối đa 500MB)
+              </p>
+            </div>
+          </div>
+        } @else {
+          <div class="dropzone-uploading">
+            <i class="fas fa-spinner fa-spin fa-2x mb-2"></i>
+            <p>Đang xử lý upload...</p>
+          </div>
+        }
+
+        <input type="file" #fileInput hidden multiple
+               (change)="onFilesSelected($event)"
+               accept=".jpg,.jpeg,.png,.gif,.webp,.bmp,.tiff,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.html,.xml,.json,.zip,.rar,.7z,.rtf,.mp4,.avi,.mov,.wmv,.flv,.webm,.mkv,.mp3,.wav,.flac,.aac,.ogg,.m4a"
+               [disabled]="isUploading"/>
+      </div>
+
+      <!-- File Preview Section -->
+      <div class="preview-scroll">
+        <!-- Document Files -->
+        @if (fileDocumentUrl.length > 0) {
+          <div class="preview-section">
+            <div class="preview-title">
+              <i class="fas fa-file-alt me-2"></i>
+              Tài liệu ({{fileDocumentUrl.length}})
+            </div>
+            <div class="preview-grid">
+              @for (file of fileDocumentUrl; track file.name; let i = $index) {
+                <div class="preview-item"
+                     [class.uploading]="file.status === 'uploading'"
+                     [class.success]="file.status === 'success'"
+                     [class.error]="file.status === 'error'">
+
+                  <!-- File Extension Badge -->
+                  <div class="file-extension" [ngStyle]="getExtensionBadgeStyle(file.name)">
+                    {{getFileExtension(file.name).replace('.', '')}}
+                  </div>
+
+                  <!-- File Icon -->
+                  <div class="file-icon">
+                    <i [fileIcon]="{filetype: file.type, type: 2}"></i>
+<!--                    <i [class]="'fas ' + getFileTypeIcon(file.type)" [style.color]="getFileTypeColor(file.name)"></i>-->
+                  </div>
+
+                  <!-- File Info -->
+                  <div class="preview-info">
+                    <div class="preview-name"
+                         [class]="getFileNameClass(file.name)"
+                         [title]="getFileTooltip(file)">
+                      {{isLongFileName(file.name) ? file.name : getDisplayFileName(file.name)}}
+                    </div>
+                    <div class="preview-size">{{file.size | fileSize}}</div>
+
+                    <!-- Large file indicator -->
+                    @if (isLargeFile(file.size)) {
+                      <div class="file-type-badge large">
+                        <i class="fas fa-rocket me-1"></i>Large
+                      </div>
+                    } @else {
+                      <div class="file-type-badge small">
+                        <i class="fas fa-bolt me-1"></i>Standard
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Status & Progress -->
+                  <div class="file-status">
+                    <i [class]="'fas ' + getStatusIcon(file.status)"
+                       [style.color]="file.status === 'success' ? '#28a745' : file.status === 'error' ? '#dc3545' : file.status === 'uploading' ? '#17a2b8' : '#6c757d'"></i>
+                    @if (file.status === 'uploading' && file.uploadProgress !== undefined) {
+                      <div class="progress-small mt-1">
+                        <div class="progress-bar" [style.width.%]="file.uploadProgress"></div>
+                      </div>
+                    }
+                    @if (file.status === 'error' && file.errorMessage) {
+                      <div class="error-text">{{file.errorMessage}}</div>
+                    }
+                  </div>
+
+                  <!-- Remove Button -->
+                  @if (!isUploading && file.status !== 'success') {
+                    <button class="btn-remove"
+                            (click)="removeFile(i, false)"
+                            [title]="'Xóa ' + file.name">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Image Files -->
+        @if (imageUrls.length > 0) {
+          <div class="preview-section">
+            <div class="preview-title">
+              <i class="fas fa-images me-2"></i>
+              Hình ảnh ({{imageUrls.length}})
+            </div>
+            <div class="preview-grid">
+              @for (file of imageUrls; track file.name; let i = $index) {
+                <div class="preview-item image-item"
+                     [class.uploading]="file.status === 'uploading'"
+                     [class.success]="file.status === 'success'"
+                     [class.error]="file.status === 'error'">
+
+                  <!-- File Extension Badge -->
+                  <div class="file-extension" [ngStyle]="getExtensionBadgeStyle(file.name)">
+                    {{getFileExtension(file.name).replace('.', '')}}
+                  </div>
+
+                  <!-- Image Preview -->
+                  <div class="image-preview">
+                    @if (file.url) {
+                      <img [src]="file.url"
+                           [alt]="file.name"
+                           loading="lazy"
+                           [title]="getFileTooltip(file)"/>
+                    } @else {
+                      <div class="image-placeholder">
+                        <i class="fas fa-image"></i>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Image Info -->
+                  <div class="preview-info">
+                    <div class="preview-name"
+                         [class]="getFileNameClass(file.name)"
+                         [title]="getFileTooltip(file)">
+                      {{isLongFileName(file.name) ? file.name : getDisplayFileName(file.name)}}
+                    </div>
+                    <div class="preview-size">{{file.size | fileSize}}</div>
+
+                    <!-- Large file indicator -->
+                    @if (isLargeFile(file.size)) {
+                      <div class="file-type-badge large">
+                        <i class="fas fa-rocket me-1"></i>Large
+                      </div>
+                    } @else {
+                      <div class="file-type-badge small">
+                        <i class="fas fa-bolt me-1"></i>Standard
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Status & Progress -->
+                  <div class="file-status">
+                    <i [class]="'fas ' + getStatusIcon(file.status)"
+                       [style.color]="file.status === 'success' ? '#28a745' : file.status === 'error' ? '#dc3545' : file.status === 'uploading' ? '#17a2b8' : '#6c757d'"></i>
+                    @if (file.status === 'uploading' && file.uploadProgress !== undefined) {
+                      <div class="progress-small mt-1">
+                        <div class="progress-bar" [style.width.%]="file.uploadProgress"></div>
+                      </div>
+                    }
+                    @if (file.status === 'error' && file.errorMessage) {
+                      <div class="error-text">{{file.errorMessage}}</div>
+                    }
+                  </div>
+
+                  <!-- Remove Button -->
+                  @if (!isUploading && file.status !== 'success') {
+                    <button class="btn-remove"
+                            (click)="removeFile(i, true)"
+                            [title]="'Xóa ' + file.name">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Empty State -->
+        @if (files.length === 0) {
+          <div class="empty-state">
+            <i class="fas fa-file-upload empty-icon"></i>
+            <p class="empty-text">Chưa có file nào được chọn</p>
+            <p class="empty-subtext">Hãy kéo thả hoặc click vào vùng phía trên để chọn file</p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer">
+    <div class="upload-summary me-auto">
+      @if (files.length > 0) {
+        <span class="text-muted">
+          <i class="fas fa-files me-1"></i>
+          {{files.length}} file được chọn
+          <span class="ms-2">
+            <i class="fas fa-weight-hanging me-1"></i>
+            {{getTotalSize() | fileSize}}
+          </span>
+        </span>
+      }
+    </div>
+
+    <button type="button" class="btn btn-sm btn-outline-primary"
+            (click)="save()"
+            [disabled]="files.length === 0 || isUploading">
+      @if (isUploading) {
+        <i class="fas fa-spinner fa-spin me-1"></i>
+        Đang tải lên...
+      } @else {
+        <i class="fas fa-upload me-1"></i>
+        Tải lên ({{files.length}})
+      }
+    </button>
+
+    <button type="button" class="btn btn-sm btn-outline-secondary"
+            (click)="close('Cross click')"
+            [disabled]="isUploading">
+      <i class="fas fa-times me-1"></i>
+      Hủy
+    </button>
+  </div>
+</ng-template>
+
+<app-toast #toastTpl></app-toast>

@@ -1,0 +1,15 @@
+/* You can add global styles to this file, and also import other style files */
+@import './scss/app';
+
+@import "../node_modules/@fontsource/inter";
+@import "../node_modules/@fontsource/inter/300";
+@import "../node_modules/@fontsource/inter/400";
+@import "../node_modules/@fontsource/inter/500";
+@import "../node_modules/@fontsource/inter/600";
+@import "../node_modules/@fontsource/inter/700";
+
+@import "../node_modules/@ng-select/ng-select/themes/default.theme.css";
+
+/* Importing Bootstrap SCSS file. */
+@import 'bootstrap/scss/bootstrap';
+@import 'bootstrap-icons/font/bootstrap-icons';

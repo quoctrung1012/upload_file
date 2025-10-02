@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{TITLE}}</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+      body { background-color: #f8f9fa; }
+      .main-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem 0; }
+      .word-content { background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 2rem; margin-top: 2rem; }
+      .word-content h1, .word-content h2, .word-content h3 { color: #2c3e50; margin-top: 1.5rem; }
+      .word-content p { margin-bottom: 1rem; text-align: justify; }
+      .word-content table { border-collapse: collapse; width: 100%; margin: 1.5rem 0; }
+      .word-content td, .word-content th { border: 1px solid #ddd; padding: 8px; text-align: left; }
+      .word-content th { background-color: #f2f2f2; font-weight: bold; }
+      .word-content pre { background: #f6f8fa; border-radius: 6px; padding: 1rem; }
+  </style>
+</head>
+<body>
+<div class="main-header">
+  <div class="container text-center">
+    <h1><i class="bi bi-file-earmark-word me-3"></i>{{TITLE}}</h1>
+    <p class="lead">Word Document Preview</p>
+  </div>
+</div>
+<div class="container">
+  <div class="word-content">
+    {{CONTENT}}
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

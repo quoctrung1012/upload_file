@@ -1,0 +1,23 @@
+table.file-upload {
+  td.file {
+    text-align: center;
+    vertical-align: middle;
+
+    .file-icon {
+      flex: 0 0 25px;
+      max-width: 25px;
+      margin: 0;
+      display: inline-block;
+
+      .icon-type {
+        width: 25px !important;
+        height: 25px !important;
+      }
+    }
+  }
+  td, th {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

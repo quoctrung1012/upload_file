@@ -1,0 +1,165 @@
+<div class="container">
+  <div class="header">
+    <h1>🎬 Video Manager</h1>
+    <p>Upload, manage và stream video của bạn một cách dễ dàng</p>
+  </div>
+
+  <div class="content">
+    <div class="upload-section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span>📤</span>
+          Tải lên Video
+        </h2>
+
+        <div class="upload-controls">
+          <button class="btn btn-toggle" (click)="toggleUploadMethod()">
+            {{ useAsyncUpload ? '⚡ Async Mode' : '🔄 Sync Mode' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="upload-area"
+           (click)="fileInput.click()"
+           (dragover)="onDragOver($event)"
+           (dragleave)="onDragLeave($event)"
+           (drop)="onDrop($event)">
+        <input #fileInput type="file" class="file-input"
+               multiple accept="video/*" (change)="onFileSelected($event)">
+        <div class="upload-icon">☁️</div>
+        <div class="upload-text">Nhấp để chọn video hoặc kéo thả file vào đây</div>
+        <div class="upload-hint">
+          Hỗ trợ: MP4, AVI, MOV, WMV, FLV, WEBM, MKV
+          <br>
+          <small>Mode: {{ useAsyncUpload ? 'Async Upload (Nhanh hơn)' : 'Sync Upload (Ổn định hơn)' }}</small>
+        </div>
+      </div>
+
+      <div class="upload-progress" *ngIf="getProgressKeys().length > 0">
+        <div class="progress-item" *ngFor="let filename of getProgressKeys()"
+             [class.error]="isUploadError(filename)"
+             [class.success]="progressMap[filename] === 100 && !isUploadError(filename)">
+          <div class="progress-header">
+            <div class="progress-filename">{{filename}}</div>
+            <div class="progress-status">
+              <div class="progress-percentage" *ngIf="!isUploadError(filename)">
+                {{progressMap[filename]}}%
+              </div>
+              <div class="progress-percentage error" *ngIf="isUploadError(filename)">
+                ❌ Error
+              </div>
+              <div class="progress-percentage success" *ngIf="progressMap[filename] === 100 && !isUploadError(filename)">
+                ✅ Complete
+              </div>
+            </div>
+          </div>
+          <div class="progress-bar" *ngIf="!isUploadError(filename)">
+            <div class="progress-fill"
+                 [style.width.%]="progressMap[filename]"
+                 [class.complete]="progressMap[filename] === 100"></div>
+          </div>
+          <div class="error-message" *ngIf="isUploadError(filename)">
+            Upload failed. File will be cleaned up automatically.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="videos-section">
+      <h2 class="section-title">
+        <span>📺</span>
+        Danh sách Video ({{videos.length}})
+      </h2>
+
+      <div class="videos-container">
+        <div class="loading" *ngIf="loading">
+          <div class="spinner"></div>
+          <p>Đang tải danh sách video...</p>
+        </div>
+
+        <div class="empty-state" *ngIf="!loading && videos.length === 0 && !error">
+          <div class="empty-icon">📹</div>
+          <div class="empty-text">Chưa có video nào</div>
+          <div class="empty-hint">Hãy upload video đầu tiên của bạn!</div>
+        </div>
+
+        <div class="empty-state error-state" *ngIf="error">
+          <div class="empty-icon">❌</div>
+          <div class="empty-text">Có lỗi xảy ra</div>
+          <div class="empty-hint">{{error}}</div>
+          <button class="btn btn-retry" (click)="fetchVideos()">🔄 Thử lại</button>
+        </div>
+
+        <div class="videos-grid" *ngIf="!loading && videos.length > 0">
+          <div class="video-card" *ngFor="let video of videos; trackBy: trackByVideoId">
+            <div class="video-thumbnail">
+              <video class="video-player" controls preload="metadata">
+                <source [src]="getVideoUrl(video)" [type]="video.type">
+                Trình duyệt không hỗ trợ phát video.
+              </video>
+            </div>
+
+            <div class="video-info">
+              <h3 class="video-title" [title]="video.name">{{video.name}}</h3>
+
+              <div class="video-meta">
+                <div class="meta-row">
+                  <span class="video-type">{{video.type}}</span>
+                  <span class="video-size">{{formatFileSize(video.size)}}</span>
+                </div>
+                <div class="meta-row">
+                  <span class="video-date">{{formatDate(video.createdAt)}}</span>
+                  <span class="video-storage" [class.database]="video.path === '(db)'">
+                    {{ video.path === '(db)' ? '💾 Database' : '📁 File System' }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="video-actions">
+                <button class="btn btn-info" (click)="showVideoInfo(video)">
+                  ℹ️ Info
+                </button>
+                <button class="btn btn-delete" (click)="deleteVideo(video.id)">
+                  🗑️ Xóa
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Video Info Modal (optional) -->
+  <div class="modal" *ngIf="selectedVideoInfo" (click)="closeVideoInfo()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>📋 Thông tin Video</h3>
+        <button class="modal-close" (click)="closeVideoInfo()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="info-row">
+          <strong>ID:</strong> {{selectedVideoInfo.id}}
+        </div>
+        <div class="info-row">
+          <strong>Tên:</strong> {{selectedVideoInfo.name}}
+        </div>
+        <div class="info-row">
+          <strong>Loại:</strong> {{selectedVideoInfo.type}}
+        </div>
+        <div class="info-row">
+          <strong>Kích thước:</strong> {{formatFileSize(selectedVideoInfo.size)}}
+        </div>
+        <div class="info-row">
+          <strong>Ngày tạo:</strong> {{formatDate(selectedVideoInfo.createdAt)}}
+        </div>
+        <div class="info-row">
+          <strong>Lưu trữ:</strong>
+          <span [class.database]="selectedVideoInfo.path === '(db)'">
+            {{ selectedVideoInfo.path === '(db)' ? 'Database' : selectedVideoInfo.path }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

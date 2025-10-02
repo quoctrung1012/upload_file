@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Dashboard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="dashboard-body">
+<div class="header">
+  <div class="header-content">
+    <div class="logo">Dashboard</div>
+    <div class="user-info">
+      <p class="welcome-text">Welcome, <span id="username">Loading...</span>!</p>
+      <button id="logoutBtn" class="btn-logout">Logout</button>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="loading-spinner" id="loadingSpinner">
+    🔄 Loading your dashboard...
+  </div>
+
+  <div id="dashboardContent" style="display: none;">
+    <h1 class="dashboard-title">Your Dashboard</h1>
+
+    <div class="success-message">
+      🎉 You are logged in successfully!
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-number">24</div>
+        <div class="stat-label">Active Projects</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">1,547</div>
+        <div class="stat-label">Total Views</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">89%</div>
+        <div class="stat-label">Success Rate</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">12</div>
+        <div class="stat-label">Team Members</div>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="dashboard-card">
+        <div class="card-icon">📁</div>
+        <h3 class="card-title">File Manager</h3>
+        <p class="card-description">Manage your files with advanced upload and preview features.</p>
+        <button id="openFileManagerBtn" class="btn btn-primary">Open File Manager</button>
+      </div>
+
+      <div class="dashboard-card">
+        <div class="card-icon">📊</div>
+        <h3 class="card-title">Analytics</h3>
+        <p class="card-description">View detailed analytics and insights about your projects and performance metrics.</p>
+      </div>
+
+      <div class="dashboard-card">
+        <div class="card-icon">👥</div>
+        <h3 class="card-title">Team Management</h3>
+        <p class="card-description">Manage your team members, assign roles, and collaborate effectively on projects.</p>
+      </div>
+
+      <div class="dashboard-card">
+        <div class="card-icon">⚙️</div>
+        <h3 class="card-title">Settings</h3>
+        <p class="card-description">Customize your account settings, preferences, and notification options.</p>
+      </div>
+
+      <div class="dashboard-card">
+        <div class="card-icon">📝</div>
+        <h3 class="card-title">Reports</h3>
+        <p class="card-description">Generate comprehensive reports and export data for analysis and presentations.</p>
+      </div>
+
+      <div class="dashboard-card">
+        <div class="card-icon">🔒</div>
+        <h3 class="card-title">Security</h3>
+        <p class="card-description">Monitor security settings, review login activity, and manage access permissions.</p>
+      </div>
+
+      <div class="dashboard-card">
+        <div class="card-icon">📱</div>
+        <h3 class="card-title">Mobile App</h3>
+        <p class="card-description">Download our mobile app to access your dashboard on the go from any device.</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  // Global variable để lưu thông tin user
+  window.userData = null;
+
+  // Function để redirect về login
+  function redirectToLogin(message = 'Please login to continue') {
+    // Xóa tất cả thông tin trong sessionStorage
+    sessionStorage.clear();
+
+    // Hiển thị thông báo nếu cần
+    if (message !== 'Please login to continue') {
+      alert(message);
+    }
+
+    // Chuyển hướng về login
+    window.location.href = '/login';
+  }
+
+  // Function để validate token với server
+  async function validateTokenWithServer(token) {
+    try {
+      const response = await makeAuthenticatedRequest('/api/auth/validate', {
+        method: 'GET',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response) return null; // Đã redirect login
+
+      if (response.ok) {
+        return await response.json();
+      } else {
+        throw new Error('Token validation failed after refresh');
+      }
+    } catch (error) {
+      console.error('Token validation error:', error);
+      throw error;
+    }
+  }
+
+  // Function để load user data - ĐÃ LOẠI BỎ API VALIDATION
+  async function loadUserData() {
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const dashboardContent = document.getElementById('dashboardContent');
+    const usernameElement = document.getElementById('username');
+
+    loadingSpinner.style.display = 'block';
+    dashboardContent.style.display = 'none';
+
+    try {
+      const token = sessionStorage.getItem('authToken');
+      const refreshToken = sessionStorage.getItem('refreshToken');
+      const username = sessionStorage.getItem('username');
+
+      if (!token || !refreshToken || !username) {
+        throw new Error('Missing authentication data');
+      }
+
+      // Validate với auto-refresh
+      const validationResponse = await validateTokenWithServer(token);
+
+      if (!validationResponse) return; // Đã redirect login
+
+      if (validationResponse.username !== username) {
+        throw new Error('Username mismatch');
+      }
+
+      // Update global data
+      window.userData = {
+        token: sessionStorage.getItem('authToken'), // Có thể đã được refresh
+        username: username,
+        userId: sessionStorage.getItem('userId'),
+        userRole: sessionStorage.getItem('userRole')
+      };
+
+      usernameElement.textContent = username;
+
+      setTimeout(() => {
+        loadingSpinner.style.display = 'none';
+        dashboardContent.style.display = 'block';
+      }, 500);
+
+    } catch (error) {
+      console.error('Failed to load user data:', error);
+      loadingSpinner.style.display = 'none';
+      redirectToLogin('Session expired or invalid. Please login again.');
+    }
+  }
+
+  // Function để logout - ĐÃ ĐƠN GIẢN HÓA
+  async function logout() {
+    try {
+      const token = sessionStorage.getItem('authToken');
+
+      if (token) {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Logout API error:', error);
+    } finally {
+      // Dù có lỗi hay không cũng clear session và redirect
+      sessionStorage.clear();
+      window.userData = null;
+      window.location.href = '/login';
+    }
+  }
+
+  async function refreshAccessToken() {
+    try {
+      const refreshToken = sessionStorage.getItem('refreshToken');
+
+      if (!refreshToken) {
+        throw new Error('No refresh token available');
+      }
+
+      const response = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken: refreshToken })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+
+        // Cập nhật tokens mới
+        sessionStorage.setItem('authToken', data.accessToken);
+        if (data.refreshToken) {
+          sessionStorage.setItem('refreshToken', data.refreshToken);
+        }
+
+        console.log('Token refreshed successfully');
+        return data.accessToken;
+      } else {
+        throw new Error('Refresh token expired or invalid');
+      }
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      throw error;
+    }
+  }
+
+  async function makeAuthenticatedRequest(url, options = {}) {
+    let token = sessionStorage.getItem('authToken');
+
+    const requestOptions = {
+      ...options,
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json',
+        ...options.headers
+      }
+    };
+
+    try {
+      let response = await fetch(url, requestOptions);
+
+      // Nếu token hết hạn (401), thử refresh
+      if (response.status === 401) {
+        console.log('Access token expired, attempting refresh...');
+
+        try {
+          // Refresh token
+          const newToken = await refreshAccessToken();
+
+          // Retry với token mới
+          requestOptions.headers['Authorization'] = 'Bearer ' + newToken;
+          response = await fetch(url, requestOptions);
+
+        } catch (refreshError) {
+          // Refresh thất bại → redirect login
+          redirectToLogin('Session expired. Please login again.');
+          return null;
+        }
+      }
+
+      return response;
+    } catch (error) {
+      console.error('Request failed:', error);
+      throw error;
+    }
+  }
+
+  function setupTokenAutoRefresh() {
+    // Refresh token 2 phút trước khi hết hạn (15 phút - 2 phút = 13 phút)
+    const refreshInterval = (15 - 2) * 60 * 1000; // 13 phút
+
+    setInterval(async () => {
+      try {
+        const token = sessionStorage.getItem('authToken');
+        if (token) {
+          console.log('Auto-refreshing token...');
+          await refreshAccessToken();
+        }
+      } catch (error) {
+        console.log('Auto-refresh failed, user will need to login again');
+      }
+    }, refreshInterval);
+  }
+
+  window.addEventListener('load', function() {
+    loadUserData();
+    setupTokenAutoRefresh(); // Bật auto-refresh
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', function (e) {
+    e.preventDefault();
+
+    // Confirm trước khi logout
+    if (confirm('Are you sure you want to logout?')) {
+      logout();
+    }
+  });
+
+  // Kiểm tra session storage có bị thay đổi không (optional)
+  window.addEventListener('storage', function (e) {
+    if (e.key === 'authToken' && !e.newValue) {
+      // Token bị xóa từ tab khác
+      redirectToLogin('You have been logged out from another tab');
+    }
+  });
+
+  // Kiểm tra session khi focus vào window (optional)
+  window.addEventListener('focus', function () {
+    const token = sessionStorage.getItem('authToken');
+    if (!token && window.userData) {
+      redirectToLogin('Session expired');
+    }
+  });
+
+  document.getElementById('openFileManagerBtn').addEventListener('click', function() {
+    const token = sessionStorage.getItem('authToken');
+    const username = sessionStorage.getItem('username');
+
+    if (!token || !username) {
+      alert('Please login first');
+      return;
+    }
+
+    // Tạo URL với token và user info
+    const angularUrl = `http://localhost:4200/file-manager?token=${encodeURIComponent(token)}&username=${encodeURIComponent(username)}`;
+
+    // Mở trong tab mới
+    window.open(angularUrl, '_blank');
+  });
+</script>
+</body>
+</html>

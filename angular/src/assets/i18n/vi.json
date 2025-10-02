@@ -1,0 +1,22 @@
+{
+  "action": {
+    "name": "Chức năng",
+    "delete": "Xóa",
+    "view": "Xem",
+    "download": "Tải xuống",
+    "upload": "Upload",
+    "video": "Video"
+  },
+  "upload": {
+    "video": {
+      "title": "Danh sách Video"
+    },
+    "list": {
+      "title": "Danh sách File",
+      "name": "Tên file",
+      "size": "Kích thước",
+      "creationDate": "Ngày upload",
+      "type": "Kiểu"
+    }
+  }
+}

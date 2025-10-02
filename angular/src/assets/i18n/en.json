@@ -1,0 +1,22 @@
+{
+  "action": {
+    "name": "Action",
+    "delete": "Delete",
+    "view": "View",
+    "upload": "Upload",
+    "download": "Download",
+    "video": "Video"
+  },
+  "upload": {
+    "video": {
+      "title": "Video list"
+    },
+    "list": {
+      "title": "File list",
+      "name": "Name file",
+      "size": "Size",
+      "creationDate": "Creation Date",
+      "type": "Type"
+    }
+  }
+}

@@ -1,0 +1,13 @@
+@import "image";
+@import "table";
+@import "switch";
+@import "pagination";
+body {
+  font-family: Inter, Helvetica, Arial, sans-serif;
+  background-color: #f7f7f7ff;
+  -webkit-font-smoothing: inherit !important;
+  font-size: 13px;
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+}
+

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Create Account</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="auth-body">
+<div class="auth-container">
+  <h1 class="auth-title">Create Account</h1>
+  <p class="welcome-text">Join us today and get started!</p>
+
+  <div class="message" id="messageContainer" style="display: none;">
+    <p id="messageText"></p>
+  </div>
+
+  <form id="registerForm">
+    <div class="form-group">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" class="form-input" required>
+    </div>
+
+    <div class="form-group">
+      <label for="email">Email Address</label>
+      <input type="email" id="email" name="email" class="form-input" required>
+    </div>
+
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" class="form-input" required>
+    </div>
+
+    <div class="form-group">
+      <label for="confirmPassword">Confirm Password</label>
+      <input type="password" id="confirmPassword" name="confirmPassword" class="form-input" required>
+    </div>
+
+    <button type="submit" class="btn-primary" id="registerBtn">
+      <span class="btn-text">Create Account</span>
+      <span class="btn-loading" style="display: none;">Creating Account...</span>
+    </button>
+  </form>
+
+  <div class="auth-link">
+    <p>Already have an account? <a href="/login">Sign In</a></p>
+  </div>
+</div>
+
+<script>
+  function showMessage(message, type) {
+    const messageContainer = document.getElementById('messageContainer');
+    const messageText = document.getElementById('messageText');
+
+    // Remove existing classes
+    messageText.className = '';
+
+    // Add appropriate class based on type
+    if (type === 'success') {
+      messageText.className = 'success';
+    } else if (type === 'error') {
+      messageText.className = 'error';
+    } else {
+      messageText.className = 'info';
+    }
+
+    messageText.textContent = message;
+    messageContainer.style.display = 'block';
+
+    // Auto hide after 5 seconds for non-success messages
+    if (type !== 'success') {
+      setTimeout(() => {
+        messageContainer.style.display = 'none';
+      }, 5000);
+    }
+  }
+
+  function hideMessage() {
+    const messageContainer = document.getElementById('messageContainer');
+    messageContainer.style.display = 'none';
+  }
+
+  function setLoading(isLoading) {
+    const btn = document.getElementById('registerBtn');
+    const btnText = btn.querySelector('.btn-text');
+    const btnLoading = btn.querySelector('.btn-loading');
+
+    if (isLoading) {
+      btn.disabled = true;
+      btnText.style.display = 'none';
+      btnLoading.style.display = 'inline';
+      btn.style.cursor = 'not-allowed';
+    } else {
+      btn.disabled = false;
+      btnText.style.display = 'inline';
+      btnLoading.style.display = 'none';
+      btn.style.cursor = 'pointer';
+    }
+  }
+
+  function validateForm() {
+    const username = document.getElementById('username').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    // Check required fields
+    if (!username || !email || !password || !confirmPassword) {
+      showMessage('All fields are required', 'error');
+      return false;
+    }
+
+    // Username validation
+    if (username.length < 3) {
+      showMessage('Username must be at least 3 characters long', 'error');
+      return false;
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      showMessage('Username can only contain letters, numbers, and underscores', 'error');
+      return false;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      showMessage('Please enter a valid email address', 'error');
+      return false;
+    }
+
+    // Password validation
+    if (password.length < 6) {
+      showMessage('Password must be at least 6 characters long', 'error');
+      return false;
+    }
+
+    // Password confirmation
+    if (password !== confirmPassword) {
+      showMessage('Passwords do not match', 'error');
+      return false;
+    }
+
+    return true;
+  }
+
+  async function registerUser(userData) {
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData)
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        return { success: true, data: data };
+      } else {
+        return {
+          success: false,
+          message: data.message || data.error || 'Registration failed'
+        };
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      return {
+        success: false,
+        message: 'Network error. Please check your connection and try again.'
+      };
+    }
+  }
+
+  // Form submission handler
+  document.getElementById('registerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    // Hide any existing messages
+    hideMessage();
+
+    // Validate form
+    if (!validateForm()) {
+      return;
+    }
+
+    const username = document.getElementById('username').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    setLoading(true);
+
+    try {
+      const result = await registerUser({
+        username: username,
+        email: email,
+        password: password
+      });
+
+      if (result.success) {
+        showMessage('Account created successfully! Redirecting to login...', 'success');
+
+        // Clear form
+        document.getElementById('registerForm').reset();
+
+        // Redirect to login after 2 seconds
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 2000);
+
+      } else {
+        showMessage(result.message, 'error');
+      }
+
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      showMessage('An unexpected error occurred. Please try again.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  });
+
+  // Real-time password confirmation validation
+  document.getElementById('confirmPassword').addEventListener('input', function() {
+    const password = document.getElementById('password').value;
+    const confirmPassword = this.value;
+
+    if (confirmPassword && password !== confirmPassword) {
+      this.setCustomValidity('Passwords do not match');
+      this.style.borderColor = '#f44336';
+    } else {
+      this.setCustomValidity('');
+      this.style.borderColor = '';
+    }
+  });
+
+  // Clear password confirmation styling when password changes
+  document.getElementById('password').addEventListener('input', function() {
+    const confirmPasswordField = document.getElementById('confirmPassword');
+    const confirmPassword = confirmPasswordField.value;
+
+    if (confirmPassword) {
+      if (this.value === confirmPassword) {
+        confirmPasswordField.setCustomValidity('');
+        confirmPasswordField.style.borderColor = '';
+      } else {
+        confirmPasswordField.setCustomValidity('Passwords do not match');
+        confirmPasswordField.style.borderColor = '#f44336';
+      }
+    }
+  });
+
+  // Clear messages when user starts typing
+  document.querySelectorAll('.form-input').forEach(input => {
+    input.addEventListener('input', function() {
+      hideMessage();
+
+      // Reset border color if it was set to error color
+      if (this.style.borderColor === 'rgb(244, 67, 54)') {
+        this.style.borderColor = '';
+      }
+    });
+
+    // Add focus effects
+    input.addEventListener('focus', function() {
+      hideMessage();
+    });
+  });
+
+  // Prevent form submission on Enter in individual fields (optional)
+  document.querySelectorAll('.form-input').forEach(input => {
+    input.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter' && e.target.id !== 'confirmPassword') {
+        e.preventDefault();
+        // Focus next field
+        const inputs = Array.from(document.querySelectorAll('.form-input'));
+        const currentIndex = inputs.indexOf(e.target);
+        if (currentIndex < inputs.length - 1) {
+          inputs[currentIndex + 1].focus();
+        }
+      }
+    });
+  });
+
+  // Prevent toggle buttons from submitting form
+  document.querySelectorAll('.password-toggle').forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+plugins {
+  id 'java'
+  id 'org.springframework.boot' version '3.5.0'
+  id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com'
+version = '0.0.1-SNAPSHOT'
+
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(21)
+  }
+}
+
+configurations {
+  compileOnly {
+    extendsFrom annotationProcessor
+  }
+}
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  // Web dependencies for Spring Boot
+  implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+  // Core Spring Boot dependencies
+  developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+  implementation 'org.springframework.boot:spring-boot-starter'
+  implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+  implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+  implementation 'org.springframework.boot:spring-boot-starter-web'
+  implementation 'org.springframework.boot:spring-boot-starter-validation'
+  compileOnly 'org.projectlombok:lombok'
+  annotationProcessor 'org.projectlombok:lombok'
+  testImplementation 'org.springframework.boot:spring-boot-starter-test'
+  runtimeOnly 'com.mysql:mysql-connector-j'
+
+  implementation 'io.github.cdimascio:dotenv-java:3.0.0'
+
+  // Apache POI dependencies for Office document processing
+  implementation 'org.apache.poi:poi:5.2.5'
+  implementation 'org.apache.poi:poi-ooxml:5.2.5'
+  implementation 'org.apache.poi:poi-scratchpad:5.2.5'
+  implementation 'org.apache.poi:poi-ooxml-full:5.2.5'
+  implementation 'org.apache.commons:commons-compress:1.26.0'
+
+  // JODConverter for converting documents using LibreOffice
+  implementation 'org.jodconverter:jodconverter-local:4.4.7'
+  implementation 'org.jodconverter:jodconverter-core:4.4.7'
+
+  // Microsoft Graph SDK - Updated versions for compatibility
+  implementation 'com.microsoft.graph:microsoft-graph:6.14.0'
+  implementation 'com.microsoft.graph:microsoft-graph-core:2.0.0'
+
+  // Azure Identity - Compatible version
+  implementation 'com.azure:azure-identity:1.12.2'
+
+  // OAuth2 và JWT
+  implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+  implementation 'org.springframework.boot:spring-boot-starter-security'
+  implementation 'com.auth0:java-jwt:4.4.0'
+  implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+  runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+  runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+  // HTTP Client
+  implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+  implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+  // Monitoring and Metrics for performance tracking
+  implementation 'org.springframework.boot:spring-boot-starter-actuator'
+  implementation 'io.micrometer:micrometer-core'
+  implementation 'io.micrometer:micrometer-registry-prometheus'
+
+  // Cache Implementation for better performance
+  implementation 'org.springframework.boot:spring-boot-starter-cache'
+  implementation 'com.github.ben-manes.caffeine:caffeine'
+
+  // File handling utilities for better I/O operations
+  implementation 'commons-io:commons-io:2.15.1'
+  implementation 'org.apache.commons:commons-lang3:3.14.0'
+
+  // Enhanced HikariCP (already included but explicit for connection pooling)
+  implementation 'com.zaxxer:HikariCP'
+
+  // Configuration processor
+  annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+  // Test dependencies
+  testImplementation 'org.springframework.boot:spring-boot-starter-test'
+  testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// Force compatible versions to avoid conflicts
+configurations.all {
+  resolutionStrategy {
+    force 'com.azure:azure-identity:1.11.1'
+    force 'com.microsoft.graph:microsoft-graph:6.14.0'
+    force 'com.microsoft.graph:microsoft-graph-auth:0.4.0'
+    // Force JODConverter versions
+    force 'org.jodconverter:jodconverter-local:4.4.7'
+    force 'org.jodconverter:jodconverter-core:4.4.7'
+  }
+}
+
+tasks.named('test') {
+  useJUnitPlatform()
+}
