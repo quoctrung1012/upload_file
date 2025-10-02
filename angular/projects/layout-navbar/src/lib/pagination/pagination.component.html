@@ -1,0 +1,61 @@
+<div class="d-flex">
+  <ul class="pageable">
+    <li class="page-item" [class.disabled]="isEllipsis('previous')">
+      <a aria-label="First" href="javascript:;"
+         (click)="selectPage(1); $event.preventDefault()"
+         class="page-link">
+        <span aria-hidden="true">««</span>
+      </a>
+    </li>
+    <li class="page-item" [class.disabled]="isEllipsis('previous')">
+      <a aria-label="Previous" href="javascript:;"
+         (click)="selectPage(pageCurrent - 1); $event.preventDefault()"
+         class="page-link">
+        <span aria-hidden="true">«</span>
+      </a>
+    </li>
+    <li class="custom-pages-item">
+      <div class="d-flex flex-nowrap px-2">
+        <label id="paginationInputLabel" for="paginationInput" class="col-form-label me-2 ms-1">Page</label>
+        <input
+          #i
+          [value]="pageCurrent"
+          type="text"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          id="paginationInput"
+          aria-labelledby="paginationInputLabel paginationDescription"
+          class="form-control custom-pages-input"
+          (keyup.enter)="selectPage(i.value)"
+          (blur)="selectPage(i.value)"
+          (input)="formatInput($any($event).target)"
+          [ngStyle]="{'width': getInputWidth()}">
+        <span id="paginationDescription" class="col-form-label text-nowrap px-2">/{{totalPage}}</span>
+        <label class="col-form-label me-2 ms-1">Items: {{total}}</label>
+      </div>
+    </li>
+    <li class="page-item" [class.disabled]="isEllipsis('next')">
+      <a aria-label="Next" href="javascript:;"
+         (click)="selectPage(pageCurrent + 1); $event.preventDefault()"
+         class="page-link">
+        <span aria-hidden="true">»</span>
+      </a>
+    </li>
+    <li class="page-item" [class.disabled]="isEllipsis('next')">
+      <a aria-label="Last" href="javascript:;"
+         (click)="selectPage(totalPage); $event.preventDefault()"
+         class="page-link">
+        <span aria-hidden="true">»»</span>
+      </a>
+    </li>
+  </ul>
+  <ul class="pageable ps-2">
+    <li class="page-item">
+      <a aria-label="Reload" href="javascript:;"
+         (click)="onLoadGrid(); $event.preventDefault()"
+         class="page-link">
+        <span aria-hidden="true"><i class="fa-solid fa-rotate"></i></span>
+      </a>
+    </li>
+  </ul>
+</div>

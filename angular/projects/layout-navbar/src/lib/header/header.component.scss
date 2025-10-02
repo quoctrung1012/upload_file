@@ -1,0 +1,16 @@
+.dropdown-item:first-child:hover {
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+.dropdown-item:last-child:hover {
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.navbar-header {
+  width: 100%;
+}
+.nav-link {
+  cursor: pointer;
+}
